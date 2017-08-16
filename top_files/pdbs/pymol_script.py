@@ -1,0 +1,25 @@
+from pymol import cmd
+
+cmd.load("./2l4s.pdb")
+cmd.split_states("2l4s")
+ss = []
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0002 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0003 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0004 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0005 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0006 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0007 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0008 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0009 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0010 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0011 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0012 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0013 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0014 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0015 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0016 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0017 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0018 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0019 and resi 11:111")[0])
+ss.append(cmd.align("2l4s_0001 and resi 11:111", "2l4s_0020 and resi 11:111")[0])
+print ss
