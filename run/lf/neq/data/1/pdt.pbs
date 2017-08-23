@@ -1,0 +1,60 @@
+#!/bin/bash
+#PBS -N neq_lf_pdz
+#PBS -o pbs.out
+#PBS -e pbs.err
+#PBS -j oe
+#PBS -l nodes=mordor:ppn=1:gpus=1
+#PBS -l walltime=10:00:00
+
+########### Specify the input and output file names #############
+
+for ((i=1; i<2; i++))
+do
+
+	# Input Files
+	IN_FILE=pdt.in
+	CRD_FILE=${i/*/'/scratch/pbarletta/pdz/run/lf/neq/starting_frames/'"$i"_lf.rst7}
+	TOP_FILE=/scratch/pbarletta/pdz/top_files/lf.prmtop
+	# Output Files
+	OUT_FILE=plf.out
+	MD_FILE=plf.nc
+	RST_FILE=${i/*/'/scratch/pbarletta/pdz/run/lf/neq/data/1/'"$i"plf.rst7}
+	#################################################################
+	
+	
+	# Deciding wheather or not it is necessary to copy files between nodes
+	if [ "$PBS_O_HOST" == "$HOSTNAME" ]; then
+	 	cd $PBS_O_WORKDIR
+	else
+		cd /scratch/$USER
+		mkdir temp_$PBS_JOBID
+		cd temp_$PBS_JOBID
+		cp /nodes/$PBS_O_HOST/$PBS_O_WORKDIR/$IN_FILE .
+		cp /nodes/$PBS_O_HOST/$PBS_O_WORKDIR/$CRD_FILE .
+		cp /nodes/$PBS_O_HOST/$PBS_O_WORKDIR/$TOP_FILE .
+	fi
+	
+	#################################################################
+	############### Write your code here ############################
+	#################################################################
+	
+	# Running AMBER
+	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-8.0/lib64
+	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/intel/composer_xe_2013.3.163/compiler/lib/intel64
+	export AMBERHOME=/apps/amber16
+	export MDEXE=$AMBERHOME/bin/pmemd.cuda
+	
+	$MDEXE -O -i $IN_FILE -o $OUT_FILE -c $CRD_FILE -p $TOP_FILE -r $RST_FILE -x $MD_FILE
+	
+	#################################################################
+	#################################################################
+	
+	# Copying files back, in case it is needed
+	if [ "$PBS_O_HOST" != "$HOSTNAME" ]; then
+		######## Specify the output files you need to copy here ########
+		cp * /nodes/$PBS_O_HOST/$PBS_O_WORKDIR/.
+		################################################################
+		cd ..
+		rm -R temp_$PBS_JOBID
+	fi
+done
