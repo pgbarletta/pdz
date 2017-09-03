@@ -1,0 +1,92 @@
+#!/bin/bash
+#PBS -N lb_pdz_equ
+#PBS -o pbs.out
+#PBS -e pbs.err
+#PBS -j oe
+#PBS -l nodes=mordor:ppn=1:gpus=1
+#PBS -l walltime=1000:00:00
+
+#################################################################
+############### Write your code here ############################
+#################################################################
+
+# Running AMBER
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-8.0/lib64
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/intel/composer_xe_2013.3.163/compiler/lib/intel64
+export AMBERHOME=/apps/amber16
+export MDEXE=$AMBERHOME/bin/pmemd.cuda
+
+i=24
+starting_mdin="/scratch/pbarletta/pdz/run/lb/mhe/e/0equ.in"
+for step in `cat /scratch/pbarletta/pdz/run/lb/mhe/e/step.list`
+do
+
+    i=`expr $i + 1`
+    k=`expr $i - 1`
+
+    echo "Step:" $i
+
+    if [ $i == 1 ]
+    then
+
+        mdin=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$i"equ.in}
+        mdout=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$i"equ.out}
+        prmtop=${i/*/"/scratch/pbarletta/pdz/top_files/"lb.prmtop}
+        inpcrd=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/h/"hlb.rst7}
+        restrt=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$i"elb.rst7}
+        refc=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/h/"hlb.rst7}
+        mdcrd=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$i"elb.nc}
+
+        # In this 1st step mdin = starting_mdin
+        sed "s/50\.0/${step}/" $starting_mdin > $mdin
+
+        $MDEXE -O -i $mdin -o $mdout -p $prmtop -c $inpcrd -r $restrt -ref $refc -x $mdcrd
+
+        echo "Done step:" $i
+
+        continue
+    fi
+
+    if [[ $i == 35 || $i == 34 ]]
+    then
+
+	mdin=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/"pdt.in}
+        mdout=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$i"equ.out}
+        prmtop=${i/*/"/scratch/pbarletta/pdz/top_files/"lb.prmtop}
+        inpcrd=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$k"elb.rst7}
+        restrt=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$i"elb.rst7}
+        mdcrd=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$i"elb.nc}
+ 
+        $MDEXE -O -i $mdin -o $mdout -p $prmtop -c $inpcrd -r $restrt -x $mdcrd
+
+        echo "Done single step:" $i
+
+	continue
+    fi
+
+    mdin=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$i"equ.in}
+    mdout=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$i"equ.out}
+    prmtop=${i/*/"/scratch/pbarletta/pdz/top_files/"lb.prmtop}
+    inpcrd=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$k"elb.rst7}
+    restrt=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$i"elb.rst7}
+    refc=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$k"elb.rst7}
+    mdcrd=${i/*/"/scratch/pbarletta/pdz/run/lb/mhe/e/""$i"elb.nc}
+
+    sed "s/50\.0/${step}/" $starting_mdin > $mdin
+
+    $MDEXE -O -i $mdin -o $mdout -p $prmtop -c $inpcrd -r $restrt -ref $refc -x $mdcrd
+
+    echo "Done step:" $i
+done
+
+#################################################################
+#################################################################
+
+# Copying files back, in case it is needed
+if [ "$PBS_O_HOST" != "$HOSTNAME" ]; then
+ ######## Specify the output files you need to copy here ########
+ cp * /nodes/$PBS_O_HOST/$PBS_O_WORKDIR/.
+ ################################################################
+ cd ..
+ rm -R temp_$PBS_JOBID
+fi
