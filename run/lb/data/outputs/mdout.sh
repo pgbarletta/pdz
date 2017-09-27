@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Extract heat and equil mdout info
-perl process_mdout.perl plb.out 
-
+perl process_mdout.perl plb.out
 
 mv summary.ETOT etot.dat
 mv summary.EPTOT eptot.dat

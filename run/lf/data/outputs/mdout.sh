@@ -3,7 +3,6 @@
 # Extract heat and equil mdout info
 perl process_mdout.perl plf.out 
 
-
 mv summary.ETOT etot.dat
 mv summary.EPTOT eptot.dat
 mv summary.EKTOT ektot.dat
