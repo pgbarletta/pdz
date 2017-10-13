@@ -1,11 +1,8 @@
-## Load traj
-#mol new {/home/german/labo/17/pdz/top_files/dry_lb.prmtop} type {parm7} first 0 last -1 step 1 waitfor 0
-#animate style Loop
-#display resetview
-#mol addfile {/home/german/labo/17/pdz/run/lb/neq/avg_corrida/corta/full_fit_corta_neq_lb.nc} type {netcdf} first 0 last -1 step 1 waitfor 0 0
-#
-#mol modstyle 0 0 NewCartoon
-#mol selection not protein
+##############
+# Correr así:
+# vmd -f ~/labo/17/pdz/top_files/dry_lb.prmtop ../corta/full_fit_corta_neq_lb.nc 
+# y luego sourcear este script
+##############
 
 # Color Calphas by Temperature
 color scale method BGR
