@@ -63,7 +63,7 @@ natoms_lig = natoms - natoms_pdz;
 # NEQ trajectory
 frame_cnt = 400;
 
-for paso = 2000:2000
+for paso = 1:2000
     in_trj_filename = string(home, neq, "pca/corta/", "step_", paso, "plb_3.nc")
     in_trj = Trajectory(in_trj_filename)
     
@@ -123,39 +123,42 @@ for paso = 2000:2000
     top_modes_indices = map(x -> range(1,x), pnum_t0_rounded);
     
     # Get every mode that appears at least once in the essential subspaces
-    pnum_indices_t0_each_frame = Array{Int64, 1}(0)
+    pnum_indices_each_frame = Array{Int64, 1}(0)
     for frame = 1:frame_cnt
-        pnum_indices_t0_each_frame = [ pnum_indices_t0_each_frame ; top_modes[:, frame][ top_modes_indices[frame] ]  ]
+        pnum_indices_each_frame = [ pnum_indices_each_frame ; top_modes[:, frame][ top_modes_indices[frame] ]  ]
     end
-    pnum_indices_t0 = sort(unique(pnum_indices_t0_each_frame));
+    pnum_indices = sort(unique(pnum_indices_each_frame));
     
     # Now, instead of sorting modes, sort their projections with Vdiff
     top_modes_pjtions = mapslices(x -> sort(x, rev =true), abs.(dot_vdiff_modes), 1)
     
     # Get projection values for each mode of each subspacec. Later, they 'll be used as weights
-    pnum_pjtions_t0_each_frame = zeros(Float64, aa36_cut, frame_cnt)
+    pnum_pjtions_each_frame = zeros(Float64, aa36_cut, frame_cnt)
     for frame = 1:frame_cnt
         tmp = top_modes[top_modes_indices[frame], frame]
         for i = 1:length(tmp)
-            pnum_pjtions_t0_each_frame[tmp[i], frame] = dot_vdiff_modes[tmp[i], frame]
+            pnum_pjtions_each_frame[tmp[i], frame] = dot_vdiff_modes[tmp[i], frame]
         end
     end
     
     # Con los valores de proyección a c/ frame, puedo sacar el peso de c/ modo p/ todo el paso
-    weights_t0a = reshape(mapslices(x -> mean(x), pnum_pjtions_t0_each_frame.^2, 2), aa36_cut)
-    
+    weights_t0a = reshape(mapslices(x -> mean(x), pnum_pjtions_each_frame.^2, 2), aa36_cut)
+
     # Ahora obtengo pesos, pero sólamente teniendo en cuenta la frecuencia de aparición en los subespacios
     # esenciales de c/ frame
-    not0_each_frame = copy(pnum_pjtions_t0_each_frame)
+    not0_each_frame = copy(pnum_pjtions_each_frame)
     not0_each_frame[not0_each_frame .!= 0.] = 1.
     weights_t0b = reshape(mapslices(x -> mean(x), not0_each_frame, 2), aa36_cut);
     
     # Escribo pesos
     df_weights_t0a = DataFrame(Mode = collect(1:aa36_cut), Weights = weights_t0a)
     df_weights_t0b = DataFrame(Mode = collect(1:aa36_cut), Weights = weights_t0b)
+    df_pnum_cnt_a = DataFrame(Mode = collect(1:length(pnum_indices)), Mode = pnum_indices)
     
     writetable(string(home, neq, "pca/wcorta/", "weights_a_neq_step", paso), df_weights_t0a, separator = '\t')
     writetable(string(home, neq, "pca/wcorta/", "weights_b_neq_step", paso), df_weights_t0b, separator = '\t')
+
+    writetable(string(home, neq, "pca/wcorta/", "pnum_neq_step", paso), df_pnum_cnt_a, separator = '\t')
 
     println("paso: ", paso)
 end
